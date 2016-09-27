@@ -1,0 +1,15 @@
+---
+# tasks file for mysql
+- debug: msg="Will install Mysql"
+
+- name: mysql install
+  yum: name={{item}} state=latest
+  with_items:
+   - mysql
+   - mysql-server
+   - MySQL-python
+    
+- name: Mysql Initial configuration 
+  command: /usr/bin/mysql_install_db --user=mysql
+
+- service: name=mysqld state=started enabled=yes
