@@ -1,0 +1,37 @@
+---
+# tasks file for zabbix
+- debug: msg="Will install Zabbix-server & Zabbix-agent"
+
+- name: install zabbix repo
+  yum: 
+    name: http://repo.zabbix.com/zabbix/2.2/rhel/6/x86_64/zabbix-release-2.2-1.el6.noarch.rpm
+    state: present
+
+- name: zabbix and httpd install 
+  yum: name={{item}} state=latest
+  with_items:
+   - zabbix
+   - zabbix-agent
+   - httpd
+
+- name: editing zabbix_agentd.conf
+  replace: 
+   dest=/etc/zabbix/zabbix_agentd.conf
+   regexp={{item.regexp}}
+   replace={{item.replace}}
+  with_items:
+   - {regexp: 'Server=127.0.0.1', replace: 'Server=192.168.25.200'}
+   - {regexp: 'ServerActive=127.0.0.1', replace: 'ServerActive=192.168.25.200'}
+   - {regexp: 'Hostname=Zabbix server', replace: 'Hostname=zabbix agent'}
+
+- file: path=/var/log/httpd state=directory mode=0774
+
+- user: name=zabbix shell=/bin/bash groups=root append=yes
+
+- name: Start zabbix-agent
+  service: name=zabbix-agent state=started enabled=yes
+
+- name: Start httpd
+  service: name=httpd state=started enabled=yes
+
+- shell: /vagrant/agent_add.sh
